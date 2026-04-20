@@ -469,6 +469,25 @@
         }
 
         .footer a:hover { text-decoration: underline; }
+
+        .mode-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 3px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .mode-badge.paper {
+            background: rgba(255, 215, 0, 0.15);
+            color: #FFD700;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        .mode-badge.live {
+            background: rgba(0, 255, 65, 0.15);
+            color: #00FF41;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -483,6 +502,7 @@
         </div>
         <div class="header-status">
             <div class="status-dot"></div>
+            <span class="mode-badge paper">PAPER</span>
             <span id="market-status">5 AI funds competing</span>
             <a href="https://fiftyfund.ai" class="back-link" style="margin-left: 12px;">&larr; Main Fund</a>
         </div>
