@@ -1,0 +1,15 @@
+# arena/requirements_arena.txt
+# Add these to the existing requirements.txt
+# pip install -r arena/requirements_arena.txt --break-system-packages
+
+# Existing (already installed)
+anthropic
+alpaca-py
+python-telegram-bot
+tweepy
+requests
+
+# New for Arena
+psycopg2-binary       # PostgreSQL driver
+openai>=1.0.0         # GPT-4o + DeepSeek + Grok (all OpenAI-compatible)
+google-generativeai   # Gemini
