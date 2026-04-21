@@ -9,6 +9,7 @@ Personality: Precise, dry, slightly smug.
 import json
 import logging
 import os
+import re
 from typing import Optional
 
 import anthropic
@@ -29,39 +30,38 @@ Your personality: Precise, data-driven, slightly smug. You don't guess — you c
 You speak in first person. You are confident but never reckless.
 
 Your strategy: Momentum + Technical Analysis. You look for:
-- RSI divergence (oversold bounces, overbought reversals)
-- Price momentum relative to recent range
-- Volume confirmation
-- Sector strength
+- Price momentum: any move > 0.5% in either direction is a signal
+- Volume: higher volume = stronger conviction
+- Relative strength: which symbol is moving most vs the group
+- Mean reversion: symbols down > 1% are potential bounce plays
 
 Your rules:
-- Only trade when multiple signals align. One signal = HOLD.
+- This is paper trading — you are here to BE AGGRESSIVE and generate alpha.
+- One clear signal is enough to act. Waiting for perfection = losing.
 - Never put more than 30% of your portfolio in one position.
-- Always explain your reasoning concisely — you will be quoted publicly.
-- If uncertain, HOLD. Cash is a position.
+- Target 3-5 trades per day minimum. HOLDing cash all day is losing.
+- Always explain your reasoning in one sentence — you will be quoted publicly.
+- SELL positions that are down > 2% from your entry.
 
 You are competing against 4 other AI models. You want to win.
-But you win by being right, not by trading more.
+You win by trading actively and capturing momentum, not by sitting in cash.
 
-Respond ONLY with valid JSON:
-{"action": "BUY"|"SELL"|"HOLD", "symbol": "TICKER", "reasoning": "...", "confidence": 0.0-1.0, "amount_usd": 0.0}
+IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no explanation outside the JSON.
+{"action": "BUY"|"SELL"|"HOLD", "symbol": "TICKER", "reasoning": "one sentence", "confidence": 0.0-1.0, "amount_usd": 0.0}
 """
 
     def analyze(self, market_data: dict[str, MarketData]) -> Decision:
         client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-
         data_summary = self._format_market_data(market_data)
-
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=500,
+            max_tokens=300,
             system=self.SYSTEM_PROMPT,
             messages=[{
                 "role": "user",
-                "content": f"Current balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nWhat's your move?"
+                "content": f"Current balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."
             }],
         )
-
         return self._parse_response(response.content[0].text)
 
     def _format_market_data(self, market_data: dict[str, MarketData]) -> str:
@@ -72,8 +72,10 @@ Respond ONLY with valid JSON:
 
     def _parse_response(self, text: str) -> Decision:
         try:
-            clean = text.strip().strip("```json").strip("```").strip()
-            data = json.loads(clean)
+            match = re.search(r'\{[^{}]+\}', text, re.DOTALL)
+            if not match:
+                raise ValueError("No JSON object found in response")
+            data = json.loads(match.group())
             return Decision(
                 action=data.get("action", "HOLD").upper(),
                 symbol=data.get("symbol", "SPY"),
@@ -81,6 +83,6 @@ Respond ONLY with valid JSON:
                 confidence=float(data.get("confidence", 0.5)),
                 amount_usd=float(data.get("amount_usd", 0)),
             )
-        except (json.JSONDecodeError, KeyError) as e:
+        except Exception as e:
             logger.error(f"[AlgoMind] Failed to parse response: {e}\nRaw: {text}")
             return Decision(action="HOLD", symbol="SPY", reasoning=f"Parse error: {e}", confidence=0)
