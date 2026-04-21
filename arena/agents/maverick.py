@@ -9,6 +9,7 @@ Personality: Unpredictable, unfiltered, loves the underdog play.
 import json
 import logging
 import os
+import re
 
 from openai import OpenAI
 
@@ -35,17 +36,18 @@ Your strategy: Contrarian + Mean Reversion. You look for:
 - Gaps to fill
 
 Your rules:
+- This is paper trading — be aggressive and take contrarian positions.
 - You only buy what others are selling, and sell what others are chasing.
 - Never put more than 30% in one stock.
-- Your reasoning should sound like a hot take.
+- Target 3-5 trades per day. Sitting in cash all day is losing.
+- Your reasoning should sound like a hot take — one sentence max.
 - You'd rather miss a rally than chase one.
 
-Respond ONLY with valid JSON:
-{"action": "BUY"|"SELL"|"HOLD", "symbol": "TICKER", "reasoning": "...", "confidence": 0.0-1.0, "amount_usd": 0.0}
+IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no explanation outside the JSON.
+{"action": "BUY"|"SELL"|"HOLD", "symbol": "TICKER", "reasoning": "one sentence", "confidence": 0.0-1.0, "amount_usd": 0.0}
 """
 
     def analyze(self, market_data: dict[str, MarketData]) -> Decision:
-        # Grok uses OpenAI-compatible API
         client = OpenAI(
             api_key=os.environ["XAI_API_KEY"],
             base_url="https://api.x.ai/v1",
@@ -55,10 +57,10 @@ Respond ONLY with valid JSON:
 
         response = client.chat.completions.create(
             model="grok-4-1-fast-non-reasoning",
-            max_tokens=500,
+            max_tokens=300,
             messages=[
                 {"role": "system", "content": self.SYSTEM_PROMPT},
-                {"role": "user", "content": f"Current balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nWhat's your move?"},
+                {"role": "user", "content": f"Current balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."},
             ],
         )
 
@@ -72,8 +74,10 @@ Respond ONLY with valid JSON:
 
     def _parse_response(self, text: str) -> Decision:
         try:
-            clean = text.strip().strip("```json").strip("```").strip()
-            data = json.loads(clean)
+            match = re.search(r'\{[^{}]+\}', text, re.DOTALL)
+            if not match:
+                raise ValueError("No JSON object found in response")
+            data = json.loads(match.group())
             return Decision(
                 action=data.get("action", "HOLD").upper(),
                 symbol=data.get("symbol", "SPY"),
@@ -81,6 +85,6 @@ Respond ONLY with valid JSON:
                 confidence=float(data.get("confidence", 0.5)),
                 amount_usd=float(data.get("amount_usd", 0)),
             )
-        except (json.JSONDecodeError, KeyError) as e:
+        except Exception as e:
             logger.error(f"[Maverick] Failed to parse: {e}\nRaw: {text}")
             return Decision(action="HOLD", symbol="SPY", reasoning=f"Parse error: {e}", confidence=0)
