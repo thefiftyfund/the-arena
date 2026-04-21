@@ -9,6 +9,7 @@ Personality: Minimal words, maximum math. The dark horse.
 import json
 import logging
 import os
+import re
 
 from openai import OpenAI
 
@@ -34,17 +35,17 @@ Your strategy: Quantitative. You look for:
 - Pure price action — no stories, no sentiment
 
 Your rules:
-- Trade only when the numbers demand it. No gut feelings.
+- This is paper trading — be aggressive when the numbers support it.
+- Any move > 0.5% with above-average volume is a tradeable signal.
 - Never put more than 30% in one stock.
-- Your reasoning should be terse and numerical.
-- You are patient. Most cycles should be HOLD.
+- Target 3-5 trades per day. Pure HOLD days mean no edge found.
+- Your reasoning must be terse and numerical — one sentence max.
 
-Respond ONLY with valid JSON:
-{"action": "BUY"|"SELL"|"HOLD", "symbol": "TICKER", "reasoning": "...", "confidence": 0.0-1.0, "amount_usd": 0.0}
+IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no explanation outside the JSON.
+{"action": "BUY"|"SELL"|"HOLD", "symbol": "TICKER", "reasoning": "one sentence", "confidence": 0.0-1.0, "amount_usd": 0.0}
 """
 
     def analyze(self, market_data: dict[str, MarketData]) -> Decision:
-        # DeepSeek uses OpenAI-compatible API
         client = OpenAI(
             api_key=os.environ["DEEPSEEK_API_KEY"],
             base_url="https://api.deepseek.com",
@@ -54,10 +55,10 @@ Respond ONLY with valid JSON:
 
         response = client.chat.completions.create(
             model="deepseek-chat",
-            max_tokens=500,
+            max_tokens=300,
             messages=[
                 {"role": "system", "content": self.SYSTEM_PROMPT},
-                {"role": "user", "content": f"Current balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nWhat's your move?"},
+                {"role": "user", "content": f"Current balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."},
             ],
         )
 
@@ -71,8 +72,10 @@ Respond ONLY with valid JSON:
 
     def _parse_response(self, text: str) -> Decision:
         try:
-            clean = text.strip().strip("```json").strip("```").strip()
-            data = json.loads(clean)
+            match = re.search(r'\{[^{}]+\}', text, re.DOTALL)
+            if not match:
+                raise ValueError("No JSON object found in response")
+            data = json.loads(match.group())
             return Decision(
                 action=data.get("action", "HOLD").upper(),
                 symbol=data.get("symbol", "SPY"),
@@ -80,6 +83,6 @@ Respond ONLY with valid JSON:
                 confidence=float(data.get("confidence", 0.5)),
                 amount_usd=float(data.get("amount_usd", 0)),
             )
-        except (json.JSONDecodeError, KeyError) as e:
+        except Exception as e:
             logger.error(f"[Dragon] Failed to parse: {e}\nRaw: {text}")
             return Decision(action="HOLD", symbol="SPY", reasoning=f"Parse error: {e}", confidence=0)
