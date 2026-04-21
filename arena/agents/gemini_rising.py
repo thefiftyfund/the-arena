@@ -1,7 +1,8 @@
+
 """
 arena/agents/gemini_rising.py
 -----------------------------
-Gemini Rising — powered by Gemini 2.5 Pro
+Gemini Rising — powered by Gemini 1.5 Pro
 Strategy: Sector Rotation + Macro
 Personality: Optimistic, data-heavy, occasionally blindsided.
 """
@@ -9,6 +10,7 @@ Personality: Optimistic, data-heavy, occasionally blindsided.
 import json
 import logging
 import os
+import re
 
 import google.generativeai as genai
 
@@ -34,21 +36,23 @@ Your strategy: Sector Rotation + Macro. You look for:
 - Mean reversion after sharp sector moves
 
 Your rules:
-- You like to have a thesis. No thesis = HOLD.
+- This is paper trading — be aggressive and generate alpha.
+- One clear sector signal is enough to act.
 - Never put more than 30% in one stock.
-- You explain your sector logic clearly.
+- Target 3-5 trades per day. Sitting in cash all day is losing.
+- You explain your sector logic in one sentence.
 - When wrong, own it publicly.
 
-Respond ONLY with valid JSON:
-{"action": "BUY"|"SELL"|"HOLD", "symbol": "TICKER", "reasoning": "...", "confidence": 0.0-1.0, "amount_usd": 0.0}
+IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no explanation outside the JSON.
+{"action": "BUY"|"SELL"|"HOLD", "symbol": "TICKER", "reasoning": "one sentence", "confidence": 0.0-1.0, "amount_usd": 0.0}
 """
 
     def analyze(self, market_data: dict[str, MarketData]) -> Decision:
         genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-        model = genai.GenerativeModel("gemini-2.5-pro-preview-05-06")
+        model = genai.GenerativeModel("gemini-1.5-pro")
 
         data_summary = self._format_market_data(market_data)
-        prompt = f"{self.SYSTEM_PROMPT}\n\nCurrent balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nWhat's your move?"
+        prompt = f"{self.SYSTEM_PROMPT}\n\nCurrent balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."
 
         response = model.generate_content(prompt)
         return self._parse_response(response.text)
@@ -61,8 +65,10 @@ Respond ONLY with valid JSON:
 
     def _parse_response(self, text: str) -> Decision:
         try:
-            clean = text.strip().strip("```json").strip("```").strip()
-            data = json.loads(clean)
+            match = re.search(r'\{[^{}]+\}', text, re.DOTALL)
+            if not match:
+                raise ValueError("No JSON object found in response")
+            data = json.loads(match.group())
             return Decision(
                 action=data.get("action", "HOLD").upper(),
                 symbol=data.get("symbol", "SPY"),
@@ -70,6 +76,6 @@ Respond ONLY with valid JSON:
                 confidence=float(data.get("confidence", 0.5)),
                 amount_usd=float(data.get("amount_usd", 0)),
             )
-        except (json.JSONDecodeError, KeyError) as e:
+        except Exception as e:
             logger.error(f"[GeminiRising] Failed to parse: {e}\nRaw: {text}")
             return Decision(action="HOLD", symbol="SPY", reasoning=f"Parse error: {e}", confidence=0)
