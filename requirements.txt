@@ -8,3 +8,4 @@ openai>=1.0.0
 google-generativeai
 pytz
 google-genai
+google-genai
