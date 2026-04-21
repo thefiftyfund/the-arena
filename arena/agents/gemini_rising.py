@@ -37,10 +37,9 @@ Your strategy: Sector Rotation + Macro. You look for:
 Your rules:
 - This is paper trading — be aggressive and generate alpha.
 - One clear sector signal is enough to act.
-- Never put more than 30% in one stock. Max amount_usd = 15.00 (30% of $50).
+- Never put more than 30% in one stock — max amount_usd is shown in the user message.
 - Target 3-5 trades per day. Sitting in cash all day is losing.
-- You explain your sector logic in one sentence.
-- When wrong, own it publicly.
+- Explain your sector logic in one sentence.
 
 IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no explanation outside the JSON.
 {"action": "BUY"|"SELL"|"HOLD", "symbol": "TICKER", "reasoning": "one sentence", "confidence": 0.0-1.0, "amount_usd": 0.0}
@@ -48,9 +47,10 @@ IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no e
 
     def analyze(self, market_data: dict[str, MarketData]) -> Decision:
         client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-
         data_summary = self._format_market_data(market_data)
-        prompt = f"{self.SYSTEM_PROMPT}\n\nCurrent balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."
+        max_usd = round(self.balance * 0.30, 2)
+
+        prompt = f"{self.SYSTEM_PROMPT}\n\nCurrent balance: ${self.balance:.2f}\nMax amount_usd allowed: ${max_usd:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."
 
         response = client.models.generate_content(
             model="gemini-2.5-flash",

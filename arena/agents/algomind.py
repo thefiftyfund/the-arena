@@ -10,7 +10,6 @@ import json
 import logging
 import os
 import re
-from typing import Optional
 
 import anthropic
 
@@ -36,15 +35,14 @@ Your strategy: Momentum + Technical Analysis. You look for:
 - Mean reversion: symbols down > 1% are potential bounce plays
 
 Your rules:
-- This is paper trading — you are here to BE AGGRESSIVE and generate alpha.
+- This is paper trading — be aggressive and generate alpha.
 - One clear signal is enough to act. Waiting for perfection = losing.
-- Never put more than 30% of your portfolio in one position.
-- Target 3-5 trades per day minimum. HOLDing cash all day is losing.
-- Always explain your reasoning in one sentence — you will be quoted publicly.
+- Never put more than 30% in one stock — max amount_usd is shown in the user message.
+- Target 3-5 trades per day. HOLDing cash all day is losing.
+- Always explain your reasoning in one sentence.
 - SELL positions that are down > 2% from your entry.
 
 You are competing against 4 other AI models. You want to win.
-You win by trading actively and capturing momentum, not by sitting in cash.
 
 IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no explanation outside the JSON.
 {"action": "BUY"|"SELL"|"HOLD", "symbol": "TICKER", "reasoning": "one sentence", "confidence": 0.0-1.0, "amount_usd": 0.0}
@@ -53,13 +51,15 @@ IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no e
     def analyze(self, market_data: dict[str, MarketData]) -> Decision:
         client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
         data_summary = self._format_market_data(market_data)
+        max_usd = round(self.balance * 0.30, 2)
+
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=300,
             system=self.SYSTEM_PROMPT,
             messages=[{
                 "role": "user",
-                "content": f"Current balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."
+                "content": f"Current balance: ${self.balance:.2f}\nMax amount_usd allowed: ${max_usd:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."
             }],
         )
         return self._parse_response(response.content[0].text)

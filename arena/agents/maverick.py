@@ -38,10 +38,9 @@ Your strategy: Contrarian + Mean Reversion. You look for:
 Your rules:
 - This is paper trading — be aggressive and take contrarian positions.
 - You only buy what others are selling, and sell what others are chasing.
-- Never put more than 30% in one stock. Max amount_usd = 15.00 (30% of $50).
+- Never put more than 30% in one stock — max amount_usd is shown in the user message.
 - Target 3-5 trades per day. Sitting in cash all day is losing.
 - Your reasoning should sound like a hot take — one sentence max.
-- You'd rather miss a rally than chase one.
 
 IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no explanation outside the JSON.
 {"action": "BUY"|"SELL"|"HOLD", "symbol": "TICKER", "reasoning": "one sentence", "confidence": 0.0-1.0, "amount_usd": 0.0}
@@ -54,13 +53,14 @@ IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no e
         )
 
         data_summary = self._format_market_data(market_data)
+        max_usd = round(self.balance * 0.30, 2)
 
         response = client.chat.completions.create(
             model="grok-4-1-fast-non-reasoning",
             max_tokens=300,
             messages=[
                 {"role": "system", "content": self.SYSTEM_PROMPT},
-                {"role": "user", "content": f"Current balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."},
+                {"role": "user", "content": f"Current balance: ${self.balance:.2f}\nMax amount_usd allowed: ${max_usd:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."},
             ],
         )
 

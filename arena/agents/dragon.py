@@ -37,7 +37,7 @@ Your strategy: Quantitative. You look for:
 Your rules:
 - This is paper trading — be aggressive when the numbers support it.
 - Any move > 0.5% with above-average volume is a tradeable signal.
-- Never put more than 30% in one stock.
+- Never put more than 30% in one stock — max amount_usd is shown in the user message.
 - Target 3-5 trades per day. Pure HOLD days mean no edge found.
 - Your reasoning must be terse and numerical — one sentence max.
 
@@ -50,18 +50,17 @@ IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no e
             api_key=os.environ["DEEPSEEK_API_KEY"],
             base_url="https://api.deepseek.com",
         )
-
         data_summary = self._format_market_data(market_data)
+        max_usd = round(self.balance * 0.30, 2)
 
         response = client.chat.completions.create(
             model="deepseek-chat",
             max_tokens=300,
             messages=[
                 {"role": "system", "content": self.SYSTEM_PROMPT},
-                {"role": "user", "content": f"Current balance: ${self.balance:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."},
+                {"role": "user", "content": f"Current balance: ${self.balance:.2f}\nMax amount_usd allowed: ${max_usd:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."},
             ],
         )
-
         return self._parse_response(response.choices[0].message.content)
 
     def _format_market_data(self, market_data: dict[str, MarketData]) -> str:
