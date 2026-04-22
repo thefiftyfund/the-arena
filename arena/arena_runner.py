@@ -61,6 +61,26 @@ def seconds_until_next_cycle(now_et: datetime) -> int:
 
 def run_all_agents():
     """Run one cycle for all 5 agents sequentially."""
+    # Restart guard: skip cycle if a trade ran recently (prevents duplicate trades after redeploy)
+    try:
+        with db.get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT MAX(created_at) FROM trades")
+                row = cur.fetchone()
+        last_trade_at = row[0] if row else None
+        if last_trade_at is not None:
+            now_utc = datetime.now(timezone.utc)
+            if last_trade_at.tzinfo is None:
+                last_trade_at = last_trade_at.replace(tzinfo=timezone.utc)
+            minutes_ago = (now_utc - last_trade_at).total_seconds() / 60
+            if minutes_ago < 25:
+                logger.info(
+                    f"⏭️ Restart guard: last trade was {minutes_ago:.1f}min ago — skipping cycle"
+                )
+                return {}
+    except Exception as e:
+        logger.warning(f"Restart guard check failed (proceeding anyway): {e}")
+
     agents = [AlgoMind(), Oracle(), GeminiRising(), Maverick(), Dragon()]
     results = {}
 
