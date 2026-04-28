@@ -1,0 +1,6 @@
+{
+  "routes": [
+    { "src": "/tribune", "dest": "/tribune.html" },
+    { "src": "/api/(.*)", "dest": "/api/$1" }
+  ]
+}
