@@ -1,6 +1,6 @@
 """
 GET /api/leaderboard
-Returns all 5 funds ranked by P&L %.
+Returns all 5 funds ranked by total portfolio value (cash + open positions).
 """
 import json
 import os
@@ -28,12 +28,18 @@ class handler(BaseHTTPRequestHandler):
                     f.strategy,
                     f.personality,
                     f.starting_balance,
-                    f.current_balance,
-                    ROUND(((f.current_balance - f.starting_balance) / f.starting_balance) * 100, 2) AS pnl_pct,
-                    (f.current_balance - f.starting_balance) AS pnl_abs,
+                    f.current_balance AS cash,
+                    COALESCE(SUM(p.shares * p.current_price), 0) AS position_value,
+                    f.current_balance + COALESCE(SUM(p.shares * p.current_price), 0) AS current_balance,
+                    ROUND(
+                        ((f.current_balance + COALESCE(SUM(p.shares * p.current_price), 0) - f.starting_balance)
+                        / f.starting_balance) * 100, 2
+                    ) AS pnl_pct,
+                    (f.current_balance + COALESCE(SUM(p.shares * p.current_price), 0) - f.starting_balance) AS pnl_abs,
                     COALESCE(t.trade_count, 0) AS trade_count,
                     COALESCE(t.last_trade_at, f.created_at) AS last_trade_at
                 FROM funds f
+                LEFT JOIN positions p ON p.fund_id = f.id AND p.shares > 0
                 LEFT JOIN (
                     SELECT fund_id,
                            COUNT(*) AS trade_count,
@@ -43,6 +49,9 @@ class handler(BaseHTTPRequestHandler):
                     GROUP BY fund_id
                 ) t ON f.id = t.fund_id
                 WHERE f.is_active = TRUE
+                GROUP BY f.id, f.slug, f.name, f.model, f.provider, f.strategy,
+                         f.personality, f.starting_balance, f.current_balance,
+                         t.trade_count, t.last_trade_at
                 ORDER BY pnl_pct DESC
             """)
             funds = cur.fetchall()
