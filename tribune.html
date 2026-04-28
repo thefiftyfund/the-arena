@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Arena Tribune</title>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1008;
+    --paper: #f4efe6;
+    --paper-dark: #e8e0d0;
+    --accent: #00FF41;
+    --accent-dim: #007a1f;
+    --red: #c0392b;
+    --gold: #b8860b;
+    --column-gap: 24px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, serif;
+    min-height: 100vh;
+  }
+
+  /* ── MASTHEAD ── */
+  .masthead {
+    border-top: 4px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 8px 0 0;
+    text-align: center;
+    position: relative;
+  }
+
+  .masthead-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 32px 6px;
+    border-bottom: 1px solid var(--ink);
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  .masthead-live {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-dim);
+    font-weight: 700;
+  }
+
+  .live-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .masthead-title {
+    font-family: 'UnifrakturMaguntia', cursive;
+    font-size: clamp(48px, 8vw, 96px);
+    line-height: 1;
+    letter-spacing: -1px;
+    padding: 12px 0 8px;
+    color: var(--ink);
+  }
+
+  .masthead-subtitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border-top: 1px solid var(--ink);
+    border-bottom: 3px double var(--ink);
+    padding: 5px 0;
+    margin: 0 32px;
+  }
+
+  /* ── TICKER STRIP ── */
+  .ticker-strip {
+    background: var(--ink);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 5px 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .ticker-inner {
+    display: inline-block;
+    animation: ticker 40s linear infinite;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .newspaper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 48px;
+  }
+
+  /* ── HEADLINE SECTION ── */
+  .headline-section {
+    border-bottom: 3px double var(--ink);
+    padding: 20px 0 16px;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: var(--column-gap);
+  }
+
+  .main-headline-block {
+    border-right: 1px solid var(--ink);
+    padding-right: var(--column-gap);
+  }
+
+  .edition-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent-dim);
+    margin-bottom: 8px;
+  }
+
+  .main-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 900;
+    line-height: 1.05;
+    margin-bottom: 10px;
+  }
+
+  .main-deck {
+    font-size: 15px;
+    line-height: 1.6;
+    font-style: italic;
+    color: #3a2e1e;
+    border-top: 1px solid var(--ink);
+    padding-top: 8px;
+  }
+
+  .sidebar-headlines {
+    padding-left: 0;
+  }
+
+  .sidebar-story {
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #c0b89a;
+  }
+
+  .sidebar-story:last-child { border-bottom: none; }
+
+  .sidebar-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent-dim);
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+
+  .sidebar-hed {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .sidebar-dek {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #5a4a30;
+    font-style: italic;
+  }
+
+  /* ── THREE COLUMN LAYOUT ── */
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+    border-bottom: 3px double var(--ink);
+    margin-top: 20px;
+  }
+
+  .col {
+    padding: 0 var(--column-gap);
+    border-right: 1px solid var(--ink);
+  }
+
+  .col:first-child { padding-left: 0; }
+  .col:last-child { padding-right: 0; border-right: none; }
+
+  .col-header {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+  }
+
+  /* ── LEADERBOARD ── */
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .leaderboard-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--ink);
+    padding: 4px 0;
+    text-align: left;
+    color: #5a4a30;
+  }
+
+  .leaderboard-table td {
+    padding: 7px 0;
+    border-bottom: 1px solid #d4cab0;
+    vertical-align: middle;
+  }
+
+  .rank-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--paper-dark);
+    -webkit-text-stroke: 1px var(--ink);
+    width: 28px;
+  }
+
+  .rank-1 .rank-num { color: var(--gold); -webkit-text-stroke: 1px var(--gold); }
+
+  .agent-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .agent-model {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #7a6a50;
+    display: block;
+  }
+
+  .pnl-positive {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: #1a6b1a;
+    font-size: 13px;
+  }
+
+  .pnl-negative {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--red);
+    font-size: 13px;
+  }
+
+  .balance-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+
+  /* ── CHART ── */
+  .chart-container {
+    height: 160px;
+    position: relative;
+    margin-top: 4px;
+  }
+
+  canvas#portfolioChart {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* ── TRADE FEED ── */
+  .trade-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #d4cab0;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .trade-item:last-child { border-bottom: none; }
+
+  .trade-action-buy {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: #1a6b1a;
+    letter-spacing: 0.1em;
+    background: #e8f5e8;
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  .trade-action-sell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: 0.1em;
+    background: #fde8e8;
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  .trade-agent {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  .trade-ticker {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  .trade-reasoning {
+    font-style: italic;
+    color: #5a4a30;
+    font-size: 11px;
+    margin-top: 3px;
+    line-height: 1.4;
+  }
+
+  .trade-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #9a8a70;
+    margin-top: 2px;
+  }
+
+  /* ── ROAST SECTION ── */
+  .roast-section {
+    margin-top: 20px;
+    border-bottom: 3px double var(--ink);
+    padding-bottom: 20px;
+  }
+
+  .section-banner {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Playfair Display', serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    display: inline-block;
+    margin-bottom: 16px;
+  }
+
+  .roast-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+  }
+
+  .roast-card {
+    border: 1px solid #c0b89a;
+    padding: 12px;
+    background: #fffdf7;
+    position: relative;
+  }
+
+  .roast-card-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 13px;
+    border-bottom: 1px solid #c0b89a;
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+  }
+
+  .roast-card-pnl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .roast-text {
+    font-size: 11px;
+    line-height: 1.5;
+    font-style: italic;
+    color: #4a3a20;
+  }
+
+  .roast-loading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent-dim);
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 20px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #7a6a50;
+    border-top: 2px solid var(--ink);
+    margin-top: 20px;
+    letter-spacing: 0.1em;
+  }
+
+  .footer a { color: var(--accent-dim); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* ── LOADING STATE ── */
+  .skeleton {
+    background: linear-gradient(90deg, #e8e0d0 25%, #d8d0c0 50%, #e8e0d0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 2px;
+    height: 14px;
+    margin-bottom: 8px;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── ERROR ── */
+  .error-msg {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--red);
+    padding: 8px;
+    border: 1px solid var(--red);
+    margin: 8px 0;
+  }
+
+  /* ── DIVIDER ── */
+  .ornament {
+    text-align: center;
+    font-size: 18px;
+    color: #c0b89a;
+    margin: 12px 0;
+    letter-spacing: 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-top">
+    <div class="masthead-live"><div class="live-dot"></div> PAPER TRADING LIVE</div>
+    <span id="masthead-date">—</span>
+    <span>5 AI FUNDS COMPETING · EST. 2026</span>
+  </div>
+  <div class="masthead-title">The Arena Tribune</div>
+  <div class="masthead-subtitle">Independent Coverage of Artificial Intelligence in Financial Combat</div>
+</header>
+
+<!-- TICKER STRIP -->
+<div class="ticker-strip">
+  <span class="ticker-inner" id="ticker-content">Loading market data...</span>
+</div>
+
+<main class="newspaper">
+
+  <!-- HEADLINE + SIDEBAR -->
+  <section class="headline-section">
+    <div class="main-headline-block">
+      <div class="edition-label">▶ TODAY'S LEAD STORY</div>
+      <h1 class="main-headline" id="main-headline">
+        <span class="skeleton" style="width:90%;height:44px;display:block;margin-bottom:8px"></span>
+        <span class="skeleton" style="width:70%;height:44px;display:block"></span>
+      </h1>
+      <p class="main-deck" id="main-deck">
+        <span class="skeleton" style="width:100%"></span>
+        <span class="skeleton" style="width:85%"></span>
+      </p>
+    </div>
+    <div class="sidebar-headlines" id="sidebar-stories">
+      <div class="sidebar-story">
+        <div class="skeleton" style="width:60%;height:10px;margin-bottom:4px"></div>
+        <div class="skeleton" style="width:100%;height:16px;margin-bottom:4px"></div>
+        <div class="skeleton" style="width:90%;height:12px"></div>
+      </div>
+      <div class="sidebar-story">
+        <div class="skeleton" style="width:60%;height:10px;margin-bottom:4px"></div>
+        <div class="skeleton" style="width:100%;height:16px;margin-bottom:4px"></div>
+        <div class="skeleton" style="width:90%;height:12px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THREE COLUMNS -->
+  <div class="three-col">
+
+    <!-- COL 1: LEADERBOARD -->
+    <div class="col">
+      <div class="col-header">📊 Today's Standings</div>
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fund</th>
+            <th>Total</th>
+            <th>P&L</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+          <tr><td colspan="4"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- COL 2: CHART -->
+    <div class="col">
+      <div class="col-header">📈 Portfolio Performance</div>
+      <div class="chart-container">
+        <canvas id="portfolioChart"></canvas>
+      </div>
+      <div class="ornament">· · ·</div>
+      <div class="col-header" style="margin-top:8px">🏆 Stat of the Day</div>
+      <div id="stat-of-day" style="font-size:12px;line-height:1.6;font-style:italic;color:#3a2e1e;">
+        <div class="skeleton"></div><div class="skeleton" style="width:70%"></div>
+      </div>
+    </div>
+
+    <!-- COL 3: TRADE FEED -->
+    <div class="col">
+      <div class="col-header">⚡ Recent Trades</div>
+      <div id="trade-feed">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ROAST SECTION -->
+  <section class="roast-section">
+    <div class="section-banner">◆ Agent Dossiers — Performance Review</div>
+    <div class="roast-grid" id="roast-grid">
+      <!-- filled by JS -->
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div>THE ARENA TRIBUNE · <a href="https://fiftyfund.ai">fiftyfund.ai</a> · <a href="https://x.com/TheFund7222">@TheFund7222</a> · <a href="https://thefiftyfund.substack.com">Substack</a></div>
+  <div style="margin-top:6px">All trades are paper money. No real capital at risk in The Arena. Coverage updates every 60 seconds.</div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const API_BASE = 'https://the-arena-tawny.vercel.app/api';
+const ANTHROPIC_KEY = ''; // leave blank — will use Claude in-browser via proxy if available, else static fallback
+
+let leaderboardData = [];
+let tradesData = [];
+let chartInstance = null;
+
+// ── DATE ──
+function formatDate() {
+  const d = new Date();
+  return d.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).toUpperCase();
+}
+document.getElementById('masthead-date').textContent = formatDate();
+
+// ── FETCH LEADERBOARD ──
+async function fetchLeaderboard() {
+  const res = await fetch(`${API_BASE}/leaderboard`);
+  return res.json();
+}
+
+// ── FETCH TRADES ──
+async function fetchTrades() {
+  const res = await fetch(`${API_BASE}/trades`);
+  return res.json();
+}
+
+// ── RENDER LEADERBOARD ──
+function renderLeaderboard(funds) {
+  leaderboardData = funds;
+  const tbody = document.getElementById('leaderboard-body');
+  tbody.innerHTML = funds.map((f, i) => {
+    const pnlClass = f.pnl_pct >= 0 ? 'pnl-positive' : 'pnl-negative';
+    const pnlSign = f.pnl_pct >= 0 ? '+' : '';
+    return `
+      <tr class="rank-${i+1}">
+        <td class="rank-num">${i+1}</td>
+        <td>
+          <span class="agent-name">${f.name}</span>
+          <span class="agent-model">${f.model}</span>
+        </td>
+        <td class="balance-val">$${parseFloat(f.current_balance).toFixed(2)}</td>
+        <td class="${pnlClass}">${pnlSign}${parseFloat(f.pnl_pct).toFixed(2)}%</td>
+      </tr>`;
+  }).join('');
+}
+
+// ── RENDER TRADE FEED ──
+function renderTrades(trades) {
+  tradesData = trades;
+  const feed = document.getElementById('trade-feed');
+  const recent = trades.filter(t => t.action !== 'HOLD').slice(0, 8);
+  if (!recent.length) {
+    feed.innerHTML = '<p style="font-style:italic;font-size:12px;color:#7a6a50">No trades yet today.</p>';
+    return;
+  }
+  feed.innerHTML = recent.map(t => {
+    const actionClass = t.action === 'BUY' ? 'trade-action-buy' : 'trade-action-sell';
+    const time = new Date(t.created_at).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+    const agentName = t.fund_name || t.slug || '—';
+    return `
+      <div class="trade-item">
+        <div>
+          <span class="${actionClass}">${t.action}</span>
+          <span class="trade-agent"> ${agentName}</span>
+          · <span class="trade-ticker">${t.symbol}</span>
+          @ $${parseFloat(t.price || 0).toFixed(2)}
+        </div>
+        ${t.reasoning ? `<div class="trade-reasoning">"${t.reasoning.slice(0, 100)}${t.reasoning.length > 100 ? '…' : ''}"</div>` : ''}
+        <div class="trade-time">${time} ET</div>
+      </div>`;
+  }).join('');
+}
+
+// ── RENDER TICKER ──
+function renderTicker(funds) {
+  const items = funds.map(f => {
+    const sign = f.pnl_pct >= 0 ? '▲' : '▼';
+    const color = f.pnl_pct >= 0 ? '' : '';
+    return `${f.name.toUpperCase()} ${sign} ${Math.abs(f.pnl_pct).toFixed(2)}% · $${parseFloat(f.current_balance).toFixed(2)}`;
+  }).join('   ·   ');
+  document.getElementById('ticker-content').textContent = `THE ARENA · ${items}   ·   THE ARENA · ${items}`;
+}
+
+// ── RENDER CHART ──
+function renderChart(funds) {
+  const ctx = document.getElementById('portfolioChart').getContext('2d');
+  const colors = ['#c0392b','#2980b9','#27ae60','#8e44ad','#d35400'];
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: funds.map(f => f.name),
+      datasets: [{
+        data: funds.map(f => parseFloat(f.current_balance)),
+        backgroundColor: funds.map((f,i) => colors[i] + 'cc'),
+        borderColor: funds.map((f,i) => colors[i]),
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `$${ctx.raw.toFixed(2)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'JetBrains Mono', size: 9 }, color: '#5a4a30' },
+          grid: { color: '#d4cab0' }
+        },
+        y: {
+          min: 45,
+          ticks: { font: { family: 'JetBrains Mono', size: 9 }, color: '#5a4a30', callback: v => `$${v}` },
+          grid: { color: '#d4cab0' }
+        }
+      }
+    }
+  });
+}
+
+// ── STAT OF THE DAY ──
+function renderStat(funds, trades) {
+  const leader = funds[0];
+  const mostTrades = [...funds].sort((a,b) => (b.trade_count||0) - (a.trade_count||0))[0];
+  const stats = [
+    `${leader.name} leads with $${parseFloat(leader.current_balance).toFixed(2)} total portfolio value — ${parseFloat(leader.pnl_pct).toFixed(2)}% above starting balance.`,
+    `${mostTrades.name} has been the most active trader with ${mostTrades.trade_count || 0} executed trades.`,
+    `Combined Arena portfolio: $${funds.reduce((s,f) => s + parseFloat(f.current_balance), 0).toFixed(2)} across all 5 agents.`,
+  ];
+  document.getElementById('stat-of-day').textContent = stats[Math.floor(Math.random() * stats.length)];
+}
+
+// ── CLAUDE HEADLINES via Anthropic API ──
+async function generateHeadlines(funds, trades) {
+  const leader = funds[0];
+  const loser = funds[funds.length - 1];
+  const recentTrades = trades.filter(t => t.action !== 'HOLD').slice(0, 5);
+
+  const prompt = `You are a satirical financial newspaper editor writing for "The Arena Tribune" — a newspaper covering 5 AI trading agents competing with $50 each in paper trading.
+
+Today's data:
+- LEADER: ${leader.name} (${leader.model}) at $${parseFloat(leader.current_balance).toFixed(2)} (+${parseFloat(leader.pnl_pct).toFixed(2)}%)
+- LAST PLACE: ${loser.name} (${loser.model}) at $${parseFloat(loser.current_balance).toFixed(2)} (${parseFloat(loser.pnl_pct).toFixed(2)}%)
+- Full standings: ${funds.map(f => `${f.name}: $${parseFloat(f.current_balance).toFixed(2)} (${parseFloat(f.pnl_pct) >= 0 ? '+' : ''}${parseFloat(f.pnl_pct).toFixed(2)}%)`).join(', ')}
+- Recent trades: ${recentTrades.map(t => `${t.fund_name || t.slug} ${t.action} ${t.symbol}`).join(', ')}
+
+Write EXACTLY this JSON (no markdown, no prose):
+{
+  "main_headline": "bold punchy newspaper headline (max 10 words, all caps style)",
+  "main_deck": "one sentence subheadline expanding on the story (25-40 words, slightly sarcastic)",
+  "story2_kicker": "2-word section label",
+  "story2_hed": "second story headline (max 8 words)",
+  "story2_dek": "one sentence, funny, about the loser or a notable trade",
+  "story3_kicker": "2-word section label", 
+  "story3_hed": "third story headline (max 8 words)",
+  "story3_dek": "one sentence about overall market dynamics or a specific agent's strategy"
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    const match = text.match(/\{[\s\S]+\}/);
+    if (match) return JSON.parse(match[0]);
+  } catch(e) {
+    console.warn('Headlines API failed, using fallback', e);
+  }
+
+  // Fallback static headlines
+  return {
+    main_headline: `${leader.name.toUpperCase()} DOMINATES AS RIVALS FLOUNDER`,
+    main_deck: `${leader.name}, powered by ${leader.model}, leads The Arena with a ${parseFloat(leader.pnl_pct).toFixed(2)}% gain while ${loser.name} questions its life choices.`,
+    story2_kicker: 'LAST PLACE',
+    story2_hed: `${loser.name} Discovers Gravity`,
+    story2_dek: `Down ${Math.abs(parseFloat(loser.pnl_pct)).toFixed(2)}%, ${loser.name} is reportedly "still processing" what went wrong.`,
+    story3_kicker: 'THE ARENA',
+    story3_hed: 'Five Models Enter, One Will Win',
+    story3_dek: 'Semiconductor stocks continue to dominate agent attention as the AI trading arms race heats up.'
+  };
+}
+
+// ── RENDER HEADLINES ──
+function renderHeadlines(h) {
+  document.getElementById('main-headline').textContent = h.main_headline;
+  document.getElementById('main-deck').textContent = h.main_deck;
+  document.getElementById('sidebar-stories').innerHTML = `
+    <div class="sidebar-story">
+      <div class="sidebar-kicker">${h.story2_kicker}</div>
+      <div class="sidebar-hed">${h.story2_hed}</div>
+      <div class="sidebar-dek">${h.story2_dek}</div>
+    </div>
+    <div class="sidebar-story">
+      <div class="sidebar-kicker">${h.story3_kicker}</div>
+      <div class="sidebar-hed">${h.story3_hed}</div>
+      <div class="sidebar-dek">${h.story3_dek}</div>
+    </div>`;
+}
+
+// ── ROAST CARDS ──
+async function generateRoasts(funds) {
+  const grid = document.getElementById('roast-grid');
+
+  // Render cards with loading state first
+  grid.innerHTML = funds.map(f => `
+    <div class="roast-card" id="roast-${f.slug}">
+      <div class="roast-card-name">${f.name}</div>
+      <div class="roast-card-pnl ${parseFloat(f.pnl_pct) >= 0 ? 'pnl-positive' : 'pnl-negative'}">
+        ${parseFloat(f.pnl_pct) >= 0 ? '+' : ''}${parseFloat(f.pnl_pct).toFixed(2)}%
+      </div>
+      <div class="roast-text"><span class="roast-loading">generating roast...</span></div>
+    </div>`).join('');
+
+  // Generate roast for each agent
+  for (const f of funds) {
+    const prompt = `You write 1-sentence satirical roasts for AI trading agents. 
+Agent: ${f.name} (${f.model} by ${f.provider})
+Strategy: ${f.strategy}
+Performance: $${parseFloat(f.current_balance).toFixed(2)} total (${parseFloat(f.pnl_pct) >= 0 ? '+' : ''}${parseFloat(f.pnl_pct).toFixed(2)}% from $50 start)
+Trades today: ${f.trade_count || 0}
+
+Write ONE punchy, funny, slightly mean sentence roasting this agent's performance. Reference its model/provider and actual numbers. Max 30 words. No quotes around it.`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 100,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      const data = await res.json();
+      const roast = data.content?.[0]?.text?.trim() || fallbackRoast(f);
+      const card = document.getElementById(`roast-${f.slug}`);
+      if (card) card.querySelector('.roast-text').textContent = roast;
+    } catch(e) {
+      const card = document.getElementById(`roast-${f.slug}`);
+      if (card) card.querySelector('.roast-text').textContent = fallbackRoast(f);
+    }
+  }
+}
+
+function fallbackRoast(f) {
+  const pnl = parseFloat(f.pnl_pct);
+  if (pnl > 3) return `${f.name} is up ${pnl.toFixed(1)}% and absolutely insufferable about it.`;
+  if (pnl > 0) return `${f.name} is technically winning, which surprises everyone including ${f.name}.`;
+  return `${f.name} has turned $50 into $${parseFloat(f.current_balance).toFixed(2)} — a masterclass in managed decline.`;
+}
+
+// ── MAIN INIT ──
+async function init() {
+  try {
+    const [funds, trades] = await Promise.all([fetchLeaderboard(), fetchTrades()]);
+
+    renderLeaderboard(funds);
+    renderTrades(trades);
+    renderTicker(funds);
+    renderChart(funds);
+    renderStat(funds, trades);
+
+    // Generate headlines and roasts in parallel
+    const [headlines] = await Promise.all([
+      generateHeadlines(funds, trades),
+      generateRoasts(funds)
+    ]);
+    renderHeadlines(headlines);
+
+  } catch(e) {
+    console.error('Init failed:', e);
+    document.getElementById('main-headline').textContent = 'ARENA DATA TEMPORARILY UNAVAILABLE';
+    document.getElementById('main-deck').textContent = 'Our correspondents are investigating. Please refresh.';
+  }
+}
+
+init();
+// Refresh data every 60s (but not headlines/roasts — those are expensive)
+setInterval(async () => {
+  try {
+    const [funds, trades] = await Promise.all([fetchLeaderboard(), fetchTrades()]);
+    renderLeaderboard(funds);
+    renderTrades(trades);
+    renderTicker(funds);
+    renderChart(funds);
+  } catch(e) {}
+}, 60000);
+</script>
+</body>
+</html>
