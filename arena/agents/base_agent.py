@@ -95,7 +95,15 @@ class BaseArenaAgent(ABC):
         if not self.fund:
             raise RuntimeError(f"Fund '{self.slug}' not found in DB")
         self.fund_id = self.fund["id"]
-        self.balance = float(self.fund["current_balance"])
+        self.cash = float(self.fund["current_balance"])
+
+        # Total portfolio = cash + open position value
+        positions = db.get_positions(self.fund_id)
+        position_value = sum(
+            float(p["shares"]) * float(p["current_price"] or p["avg_price"])
+            for p in positions
+        )
+        self.balance = self.cash + position_value
 
     # ── Abstract methods (subclass must implement) ────────────
 
@@ -132,6 +140,21 @@ class BaseArenaAgent(ABC):
                 logger.warning(f"[{self.display_name}] Failed to fetch {symbol}: {e}")
         return result
 
+    # ── Position summary helper ───────────────────────────────
+
+    def format_positions(self) -> str:
+        """Return a human-readable summary of open positions for prompts."""
+        positions = db.get_positions(self.fund_id)
+        if not positions:
+            return "none"
+        parts = []
+        for p in positions:
+            if float(p["shares"]) > 0:
+                parts.append(
+                    f"{p['symbol']}: {float(p['shares']):.4f} shares @ ${float(p['avg_price']):.2f}"
+                )
+        return ", ".join(parts) if parts else "none"
+
     # ── Risk checks ───────────────────────────────────────────
 
     def validate_decision(self, decision: Decision) -> tuple[bool, str]:
@@ -146,8 +169,8 @@ class BaseArenaAgent(ABC):
             max_spend = self.balance * self.MAX_POSITION_PCT
             if decision.amount_usd > max_spend:
                 return False, f"Amount ${decision.amount_usd} exceeds {self.MAX_POSITION_PCT*100}% limit (${max_spend:.2f})"
-            if decision.amount_usd > (self.balance - self.CASH_BUFFER):
-                return False, f"Would breach ${self.CASH_BUFFER} cash buffer"
+            if decision.amount_usd > (self.cash - self.CASH_BUFFER):
+                return False, f"Would breach ${self.CASH_BUFFER} cash buffer (cash: ${self.cash:.2f})"
 
         if decision.action == "SELL":
             positions = db.get_positions(self.fund_id)
@@ -170,8 +193,8 @@ class BaseArenaAgent(ABC):
 
         if decision.action == "BUY":
             shares = decision.amount_usd / price
-            self.balance -= decision.amount_usd
-            db.update_balance(self.fund_id, self.balance)
+            self.cash -= decision.amount_usd
+            db.update_balance(self.fund_id, self.cash)
             db.insert_trade(self.fund_id, cycle_id, decision.symbol, "BUY", shares, price, decision.reasoning, paper=True)
 
             # Update position
@@ -197,8 +220,8 @@ class BaseArenaAgent(ABC):
                     held_shares = float(p["shares"])
                     break
             sell_value = held_shares * price
-            self.balance += sell_value
-            db.update_balance(self.fund_id, self.balance)
+            self.cash += sell_value
+            db.update_balance(self.fund_id, self.cash)
             db.insert_trade(self.fund_id, cycle_id, decision.symbol, "SELL", held_shares, price, decision.reasoning, paper=True)
             db.upsert_position(self.fund_id, decision.symbol, 0, 0, price)
 
@@ -233,7 +256,7 @@ class BaseArenaAgent(ABC):
 
     def run_cycle(self) -> dict:
         """Full cycle: fetch data → analyze → validate → execute."""
-        logger.info(f"[{self.display_name}] Starting cycle...")
+        logger.info(f"[{self.display_name}] Starting cycle (cash: ${self.cash:.2f}, total: ${self.balance:.2f})")
 
         market_data = self.fetch_market_data()
         if not market_data:

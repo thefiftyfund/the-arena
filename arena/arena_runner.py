@@ -61,11 +61,12 @@ def seconds_until_next_cycle(now_et: datetime) -> int:
 
 def run_all_agents():
     """Run one cycle for all 5 agents sequentially."""
-    # Restart guard: skip cycle if a trade ran recently (prevents duplicate trades after redeploy)
+    # Restart guard: skip cycle if a real trade (BUY/SELL) ran recently.
+    # HOLDs are excluded — they write every cycle and would permanently block execution.
     try:
         with db.get_conn() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT MAX(created_at) FROM trades")
+                cur.execute("SELECT MAX(created_at) FROM trades WHERE action != 'HOLD'")
                 row = cur.fetchone()
         last_trade_at = row[0] if row else None
         if last_trade_at is not None:
@@ -75,7 +76,7 @@ def run_all_agents():
             minutes_ago = (now_utc - last_trade_at).total_seconds() / 60
             if minutes_ago < 25:
                 logger.info(
-                    f"⏭️ Restart guard: last trade was {minutes_ago:.1f}min ago — skipping cycle"
+                    f"⏭️ Restart guard: last BUY/SELL was {minutes_ago:.1f}min ago — skipping cycle"
                 )
                 return {}
     except Exception as e:
@@ -132,7 +133,6 @@ def main():
 
         else:
             # Outside market hours — check every 5 minutes
-            day_name = now_et.strftime("%A")
             next_check = 300
             logger.info(
                 f"{'Weekend' if now_et.weekday() >= 5 else 'After hours'} "

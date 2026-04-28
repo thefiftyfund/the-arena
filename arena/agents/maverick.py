@@ -38,8 +38,10 @@ Your strategy: Contrarian + Mean Reversion. You look for:
 Your rules:
 - This is paper trading — be aggressive and take contrarian positions.
 - You only buy what others are selling, and sell what others are chasing.
-- Never put more than 30% in one stock — max amount_usd is shown in the user message.
+- Never put more than 30% of total portfolio in one stock — max amount_usd is shown in the user message.
 - Target 3-5 trades per day. Sitting in cash all day is losing.
+- HOLD is only valid if: you have no cash AND no positions are down >2%. Otherwise, act.
+- SELL positions that are down >2% from your avg entry price.
 - Your reasoning should sound like a hot take — one sentence max.
 
 IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no explanation outside the JSON.
@@ -53,14 +55,25 @@ IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no e
         )
 
         data_summary = self._format_market_data(market_data)
-        max_usd = round(self.balance * 0.30, 2)
+        max_usd = round(self.cash * 0.30, 2)
+        positions_summary = self.format_positions()
 
         response = client.chat.completions.create(
             model="grok-4-1-fast-non-reasoning",
             max_tokens=300,
             messages=[
                 {"role": "system", "content": self.SYSTEM_PROMPT},
-                {"role": "user", "content": f"Current balance: ${self.balance:.2f}\nMax amount_usd allowed: ${max_usd:.2f}\nMarket data:\n{data_summary}\n\nRespond with JSON only."},
+                {"role": "user", "content": (
+                    f"Cash available: ${self.cash:.2f}\n"
+                    f"Total portfolio value: ${self.balance:.2f}\n"
+                    f"Max amount_usd for a BUY: ${max_usd:.2f}\n"
+                    f"Open positions: {positions_summary}\n"
+                    f"Market data:\n{data_summary}\n\n"
+                    f"DECISION RULES: If you have cash > $2 and any signal exists, you MUST BUY. "
+                    f"If a position is down >2% from avg entry, you MUST SELL. "
+                    f"HOLD is only acceptable if cash < $2 AND no positions are down >2%.\n\n"
+                    f"Respond with JSON only."
+                )},
             ],
         )
 
