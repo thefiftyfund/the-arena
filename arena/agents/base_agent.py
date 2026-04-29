@@ -166,9 +166,12 @@ class BaseArenaAgent(ABC):
             return False, f"{decision.symbol} not in allowed list"
 
         if decision.action == "BUY":
-            max_spend = self.balance * self.MAX_POSITION_PCT
-            if decision.amount_usd > max_spend:
-                return False, f"Amount ${decision.amount_usd} exceeds {self.MAX_POSITION_PCT*100}% limit (${max_spend:.2f})"
+            max_spend = round(self.balance * self.MAX_POSITION_PCT, 2)
+            amount = round(decision.amount_usd, 2)
+            if amount > max_spend + 0.01:  # small tolerance for floating point
+                return False, f"Amount ${amount} exceeds {self.MAX_POSITION_PCT*100}% limit (${max_spend:.2f})"
+            # Clamp to max_spend to avoid precision issues
+            decision.amount_usd = min(decision.amount_usd, max_spend)
             if decision.amount_usd > (self.cash - self.CASH_BUFFER):
                 return False, f"Would breach ${self.CASH_BUFFER} cash buffer (cash: ${self.cash:.2f})"
 

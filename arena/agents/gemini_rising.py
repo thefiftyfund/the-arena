@@ -60,9 +60,10 @@ IMPORTANT: You MUST respond ONLY with a single valid JSON object. No prose, no e
             f"Max amount_usd for a BUY: ${max_usd:.2f}\n"
             f"Open positions: {positions_summary}\n"
             f"Market data:\n{data_summary}\n\n"
-            f"DECISION RULES: If you have cash > $2 and any signal exists, you MUST BUY. "
-            f"If a position is down >2% from avg entry, you MUST SELL. "
-            f"HOLD is only acceptable if cash < $2 AND no positions are down >2%.\n\n"
+            f"DECISION RULES: If cash < $4, you MUST SELL your worst performing position to free up cash. "
+            f"If cash > $4 and any signal exists, you MUST BUY. "
+            f"If a position is down >2% from avg entry, you MUST SELL it. "
+            f"HOLD is the last resort — only if all positions are up AND cash < $4 AND you just sold.\n\n"
             f"Respond with JSON only."
         )
 
